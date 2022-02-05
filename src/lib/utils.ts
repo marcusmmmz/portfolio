@@ -12,7 +12,10 @@ export function isMouseInRect(rect: Rect2, mouse: Vec2) {
 	);
 }
 
-export function getMousePos(canvas: HTMLCanvasElement, evt: MouseEvent) {
+export function getMousePos(
+	canvas: HTMLCanvasElement,
+	evt: MouseEvent | Touch
+) {
 	let rect = canvas.getBoundingClientRect();
 	return {
 		x: evt.clientX - rect.left,

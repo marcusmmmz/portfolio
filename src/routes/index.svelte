@@ -68,21 +68,21 @@
 		return requestAnimationFrame(mainloop);
 	}
 
-	function onMouseDown(e: MouseEvent) {
+	function onPointerDown(e: MouseEvent | Touch) {
 		for (const icon of icons) {
 			if (isMouseInRect(icon, getMousePos(canvas, e))) {
 				draggedIcons.push(icon);
 			}
 		}
 	}
-	function onMouseMove(e: MouseEvent) {
+	function onPointerMove(e: MouseEvent | Touch) {
 		for (const icon of draggedIcons) {
 			const { x, y } = getMousePos(canvas, e);
 			icon.x = x - icon.width / 2;
 			icon.y = y - icon.height / 2;
 		}
 	}
-	function onMouseUp() {
+	function onPointerUp() {
 		draggedIcons = [];
 	}
 
@@ -95,9 +95,12 @@
 </script>
 
 <canvas
-	on:mousedown={onMouseDown}
-	on:mousemove={onMouseMove}
-	on:mouseup={onMouseUp}
+	on:touchstart={(e) => onPointerDown(e.touches[0])}
+	on:touchmove={(e) => onPointerMove(e.touches[0])}
+	on:touchend={() => onPointerUp()}
+	on:mousedown={onPointerDown}
+	on:mousemove={onPointerMove}
+	on:mouseup={onPointerUp}
 	bind:this={canvas}
 	width="400"
 	height="400"
