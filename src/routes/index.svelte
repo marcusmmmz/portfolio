@@ -1,8 +1,8 @@
 <script lang="ts">
 	import {
 		drawLine,
-		getMousePos,
-		isMouseInRect,
+		getPointerPos,
+		isPointerInRect,
 		Rect2,
 		Vec2,
 	} from "$lib/utils";
@@ -70,14 +70,14 @@
 
 	function onPointerDown(e: MouseEvent | Touch) {
 		for (const icon of icons) {
-			if (isMouseInRect(icon, getMousePos(canvas, e))) {
+			if (isPointerInRect(icon, getPointerPos(canvas, e))) {
 				draggedIcons.push(icon);
 			}
 		}
 	}
 	function onPointerMove(e: MouseEvent | Touch) {
 		for (const icon of draggedIcons) {
-			const { x, y } = getMousePos(canvas, e);
+			const { x, y } = getPointerPos(canvas, e);
 			icon.x = x - icon.width / 2;
 			icon.y = y - icon.height / 2;
 		}
@@ -96,7 +96,7 @@
 
 <canvas
 	on:touchstart={(e) => onPointerDown(e.touches[0])}
-	on:touchmove={(e) => onPointerMove(e.touches[0])}
+	on:touchmove={(e) => {e.preventDefault(); onPointerMove(e.touches[0])}}
 	on:touchend={() => onPointerUp()}
 	on:mousedown={onPointerDown}
 	on:mousemove={onPointerMove}

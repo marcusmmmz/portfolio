@@ -3,16 +3,16 @@ export const Vec2 = (x: number, y: number) => ({ x, y });
 
 export type Rect2 = Vec2 & { width: number; height: number };
 
-export function isMouseInRect(rect: Rect2, mouse: Vec2) {
+export function isPointerInRect(rect: Rect2, pointer: Vec2) {
 	return (
-		mouse.x > rect.x &&
-		mouse.y > rect.y &&
-		mouse.x < rect.x + rect.width &&
-		mouse.y < rect.y + rect.height
+		pointer.x > rect.x &&
+		pointer.y > rect.y &&
+		pointer.x < rect.x + rect.width &&
+		pointer.y < rect.y + rect.height
 	);
 }
 
-export function getMousePos(
+export function getPointerPos(
 	canvas: HTMLCanvasElement,
 	evt: MouseEvent | Touch
 ) {
