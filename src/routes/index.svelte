@@ -27,17 +27,28 @@
 	let draggedIcons: Icon[] = [];
 
 	class Icon {
-		width = 64;
-		height = 64;
+		width = 0;
+		height = 0;
+		image = new Image();
 
-		constructor(public x: number, public y: number) {
+		constructor(
+			public x: number,
+			public y: number,
+			textureSrc: string,
+			public scale = 1
+		) {
+			this.image.src = textureSrc;
+			this.image.onload = () => {
+				this.width = this.image.width * this.scale;
+				this.height = this.image.height * this.scale;
+			};
 			icons.push(this);
 			gameObjects.push(this);
 		}
 
 		draw() {
 			ctx.fillStyle = "#880088";
-			ctx.fillRect(this.x, this.y, this.width, this.height);
+			ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
 		}
 	}
 
@@ -52,8 +63,8 @@
 		});
 	}
 
-	let a = new Icon(0, 0);
-	let b = new Icon(128, 128);
+	let a = new Icon(0, 0, "/svelte.svg", 0.5);
+	let b = new Icon(128, 128, "/javascript.svg", 0.5);
 
 	connectIcons(a, b);
 
@@ -96,7 +107,10 @@
 
 <canvas
 	on:touchstart={(e) => onPointerDown(e.touches[0])}
-	on:touchmove={(e) => {e.preventDefault(); onPointerMove(e.touches[0])}}
+	on:touchmove={(e) => {
+		e.preventDefault();
+		onPointerMove(e.touches[0]);
+	}}
 	on:touchend={() => onPointerUp()}
 	on:mousedown={onPointerDown}
 	on:mousemove={onPointerMove}
