@@ -24,7 +24,7 @@
 	}[] = [];
 
 	let icons: Icon[] = [];
-	let draggedIcons: Icon[] = [];
+	let draggedIcon: Icon | null;
 
 	class Icon {
 		width = 0;
@@ -82,19 +82,19 @@
 	function onPointerDown(e: MouseEvent | Touch) {
 		for (const icon of icons) {
 			if (isPointerInRect(icon, getPointerPos(canvas, e))) {
-				draggedIcons.push(icon);
+				draggedIcon = icon;
 			}
 		}
 	}
 	function onPointerMove(e: MouseEvent | Touch) {
-		for (const icon of draggedIcons) {
+		if (draggedIcon) {
 			const { x, y } = getPointerPos(canvas, e);
-			icon.x = x - icon.width / 2;
-			icon.y = y - icon.height / 2;
+			draggedIcon.x = x - draggedIcon.width / 2;
+			draggedIcon.y = y - draggedIcon.height / 2;
 		}
 	}
 	function onPointerUp() {
-		draggedIcons = [];
+		draggedIcon = null;
 	}
 
 	onMount(() => {
