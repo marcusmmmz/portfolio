@@ -43,7 +43,6 @@
 				this.height = this.image.height * this.scale;
 			};
 			icons.push(this);
-			gameObjects.push(this);
 		}
 
 		draw() {
@@ -62,11 +61,6 @@
 			},
 		});
 	}
-
-	let a = new Icon(0, 0, "/svelte.svg", 0.5);
-	let b = new Icon(128, 128, "/javascript.svg", 0.5);
-
-	connectIcons(a, b);
 
 	function mainloop() {
 		// Clear screen
@@ -103,7 +97,99 @@
 		let frame = mainloop();
 		return () => cancelAnimationFrame(frame);
 	});
+
+	let stackChoices = {
+		language: {
+			javascript: new Icon(1000, 1000, "javascript.svg", 0.5),
+			typescript: new Icon(1000, 1000, "typescript.svg", 0.15),
+		},
+		frontend: {
+			svelte: new Icon(32, 32, "svelte.svg", 0.5),
+			react: new Icon(32, 32, "react.svg", 0.5),
+		},
+		server: {
+			nodejs: new Icon(128, 32, "nodejs.svg", 0.2),
+		},
+		orm: {
+			prisma: new Icon(256, 32, "prisma.svg", 0.5),
+		},
+		db: {
+			postgresql: new Icon(256 + 64, 32, "postgresql.svg", 0.125),
+			firebase: new Icon(256 + 64, 32, "firebase.svg", 0.5),
+		},
+	};
+
+	let stack: {
+		[choice in keyof typeof stackChoices]: keyof typeof stackChoices[choice];
+	} = {
+		language: "typescript",
+		frontend: "svelte",
+		server: "nodejs",
+		orm: "prisma",
+		db: "postgresql",
+	};
+
+	$: {
+		gameObjects = [
+			stackChoices.frontend[stack.frontend],
+			stackChoices.server[stack.server],
+			// orm,
+			stackChoices.db[stack.db],
+		];
+
+		if (needsORM && stack.orm)
+			gameObjects = [...gameObjects, stackChoices.orm[stack.orm]];
+	}
+
+	$: needsORM = stack.db != "firebase";
 </script>
+
+<form>
+	<div>
+		<h1>Front end</h1>
+		<label>
+			<input type="radio" bind:group={stack.frontend} value={"svelte"} />
+			Svelte
+		</label>
+		<label>
+			<input type="radio" bind:group={stack.frontend} value={"react"} />
+			React
+		</label>
+	</div>
+
+	<div>
+		<h1>Server</h1>
+		<label>
+			<input type="radio" bind:group={stack.server} value={"nodejs"} />
+			NodeJS
+		</label>
+	</div>
+
+	<div>
+		<h1>ORM</h1>
+		<label>
+			<input
+				type="radio"
+				bind:group={stack.orm}
+				value={"prisma"}
+				disabled={!needsORM}
+			/>
+			Prisma
+		</label>
+	</div>
+
+	<div>
+		<h1>Database</h1>
+		<label>
+			<input type="radio" bind:group={stack.db} value={"postgresql"} />
+			Postgresql
+		</label>
+		<label>
+			<input type="radio" bind:group={stack.db} value={"firebase"} />
+			Firebase
+		</label>
+	</div>
+</form>
 
 <canvas
 	on:touchstart={(e) => onPointerDown(e.touches[0])}
@@ -116,7 +202,7 @@
 	on:mousemove={onPointerMove}
 	on:mouseup={onPointerUp}
 	bind:this={canvas}
-	width="400"
+	width="600"
 	height="400"
 />
 
@@ -125,5 +211,9 @@
 		text-align: center;
 		background-color: #131516;
 		color: white;
+	}
+	form {
+		display: flex;
+		justify-content: space-evenly;
 	}
 </style>
