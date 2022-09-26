@@ -1,9 +1,10 @@
 <script lang="ts">
+	import { browser } from "$app/environment";
 	import {
 		drawLine,
 		getPointerPos,
 		isPointerInRect,
-		Rect2,
+		type Rect2,
 		Vec2,
 	} from "$lib/utils";
 	import { onMount } from "svelte";
@@ -26,29 +27,36 @@
 	let icons: Icon[] = [];
 	let draggedIcon: Icon | null;
 
-	class Icon {
-		width = 0;
-		height = 0;
-		image = new Image();
+	interface Icon extends Rect2 {
+		textureSrc: string;
+		scale: number;
+		image: HTMLImageElement;
+		draw: () => any;
+	}
 
-		constructor(
-			public x: number,
-			public y: number,
-			textureSrc: string,
-			public scale = 1
-		) {
-			this.image.src = textureSrc;
-			this.image.onload = () => {
-				this.width = this.image.width * this.scale;
-				this.height = this.image.height * this.scale;
-			};
-			icons.push(this);
-		}
+	function createIcon(x: number, y: number, textureSrc: string, scale = 1) {
+		let obj: Icon = {
+			x,
+			y,
+			textureSrc,
+			scale,
+			width: 0,
+			height: 0,
+			image: new Image() as HTMLImageElement,
+			draw() {
+				ctx.fillStyle = "#880088";
+				ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+			},
+		};
 
-		draw() {
-			ctx.fillStyle = "#880088";
-			ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
-		}
+		obj.image.src = textureSrc;
+		obj.image.onload = () => {
+			obj.width = obj.image.width * obj.scale;
+			obj.height = obj.image.height * obj.scale;
+		};
+		icons.push(obj);
+
+		return obj;
 	}
 
 	function connectIcons(a: Rect2, b: Rect2) {
@@ -100,22 +108,22 @@
 
 	let stackChoices = {
 		language: {
-			javascript: new Icon(1000, 1000, "javascript.svg", 0.5),
-			typescript: new Icon(1000, 1000, "typescript.svg", 0.15),
+			javascript: createIcon(1000, 1000, "javascript.svg", 0.5),
+			typescript: createIcon(1000, 1000, "typescript.svg", 0.15),
 		},
 		frontend: {
-			svelte: new Icon(32, 32, "svelte.svg", 0.5),
-			react: new Icon(32, 32, "react.svg", 0.5),
+			svelte: createIcon(32, 32, "svelte.svg", 0.5),
+			react: createIcon(32, 32, "react.svg", 0.5),
 		},
 		server: {
-			nodejs: new Icon(128, 32, "nodejs.svg", 0.2),
+			nodejs: createIcon(128, 32, "nodejs.svg", 0.2),
 		},
 		orm: {
-			prisma: new Icon(256, 32, "prisma.svg", 0.5),
+			prisma: createIcon(256, 32, "prisma.svg", 0.5),
 		},
 		db: {
-			postgresql: new Icon(256 + 64, 32, "postgresql.svg", 0.125),
-			firebase: new Icon(256 + 64, 32, "firebase.svg", 0.5),
+			postgresql: createIcon(256 + 64, 32, "postgresql.svg", 0.125),
+			firebase: createIcon(256 + 64, 32, "firebase.svg", 0.5),
 		},
 	};
 
