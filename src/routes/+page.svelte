@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { browser } from "$app/environment";
 	import {
 		drawLine,
 		getPointerPos,
@@ -60,21 +59,28 @@
 	}
 
 	function connectIcons(a: Rect2, b: Rect2) {
-		gameObjects.push({
-			draw() {
-				drawLine(ctx, [
-					Vec2(a.x + a.width / 2, a.y + a.width / 2),
-					Vec2(b.x + b.height / 2, b.y + b.height / 2),
-				]);
-			},
-		});
+		drawLine(ctx, [
+			Vec2(a.x + a.width / 2, a.y + a.width / 2),
+			Vec2(b.x + b.height / 2, b.y + b.height / 2),
+		]);
 	}
 
 	function mainloop() {
 		// Clear screen
 		ctx.fillStyle = "#111133";
 		ctx.fillRect(0, 0, 1000, 1000);
-		// ctx.clearRect(0, 0, 1000, 1000);
+
+		connectIcons(
+			stackChoices.frontend[stack.frontend],
+			stackChoices.server[stack.server]
+		);
+
+		connectIcons(
+			stackChoices.server[stack.server],
+			stackChoices.orm[stack.orm]
+		);
+
+		connectIcons(stackChoices.orm[stack.orm], stackChoices.db[stack.db]);
 
 		for (const obj of gameObjects) obj.draw();
 
