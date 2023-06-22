@@ -17,7 +17,9 @@
 	let visibleIcons: Icon[] = [];
 
 	let icons: Icon[] = [];
-	let draggedIcon: Icon | null;
+	let draggedIcon: Icon | null = null;
+
+	let can_drag = false;
 
 	interface Icon {
 		pos: Vec2;
@@ -131,9 +133,21 @@
 			draggedIcon.pos.x = x - draggedIcon.size.x / 2;
 			draggedIcon.pos.y = y - draggedIcon.size.y / 2;
 		}
+
+		can_drag = false;
+
+		for (const icon of visibleIcons) {
+			if (isPointerInRect(icon, getPointerPos(canvas, e))) {
+				can_drag = true;
+			}
+		}
 	}
 	function onPointerUp() {
 		draggedIcon = null;
+	}
+
+	function onPointerLeave() {
+		can_drag = false;
 	}
 
 	onMount(() => {
@@ -165,7 +179,7 @@
 	};
 
 	let stack: {
-		[choice in keyof typeof stackChoices]: keyof typeof stackChoices[choice];
+		[choice in keyof typeof stackChoices]: keyof (typeof stackChoices)[choice];
 	} = {
 		language: "typescript",
 		frontend: "svelte",
@@ -237,15 +251,18 @@
 </form>
 
 <canvas
+	style={`cursor: ${can_drag ? "grab" : ""}`}
 	on:touchstart={(e) => onPointerDown(e.touches[0])}
 	on:touchmove={(e) => {
 		e.preventDefault();
 		onPointerMove(e.touches[0]);
 	}}
 	on:touchend={() => onPointerUp()}
+	on:pointerleave={onPointerLeave}
 	on:mousedown={onPointerDown}
 	on:mousemove={onPointerMove}
 	on:mouseup={onPointerUp}
+	on:mouseleave={onPointerLeave}
 	bind:this={canvas}
 	width="600"
 	height="400"
