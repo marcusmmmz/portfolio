@@ -93,7 +93,7 @@
 
 	function mainloop() {
 		// Clear screen
-		ctx.fillStyle = "#111133";
+		ctx.fillStyle = "#131516";
 		ctx.fillRect(0, 0, 1000, 1000);
 
 		connectIcons(
@@ -203,9 +203,13 @@
 	$: needsORM = stack.db != "firebase";
 </script>
 
+<h1>
+	Hello there, I'm Marcus, a fullstack web dev and also a tinkerer at heart!
+</h1>
+<h2>Here's my web tech stack:</h2>
 <form>
-	<div>
-		<h1>Front end</h1>
+	<div class="stack-choice">
+		<strong>Front end</strong>
 		<label>
 			<input type="radio" bind:group={stack.frontend} value={"svelte"} />
 			Svelte
@@ -216,16 +220,16 @@
 		</label>
 	</div>
 
-	<div>
-		<h1>Server</h1>
+	<div class="stack-choice">
+		<strong>Server</strong>
 		<label>
 			<input type="radio" bind:group={stack.server} value={"nodejs"} />
 			NodeJS
 		</label>
 	</div>
 
-	<div>
-		<h1>ORM</h1>
+	<div class="stack-choice">
+		<strong>ORM</strong>
 		<label>
 			<input
 				type="radio"
@@ -237,8 +241,8 @@
 		</label>
 	</div>
 
-	<div>
-		<h1>Database</h1>
+	<div class="stack-choice">
+		<strong>Database</strong>
 		<label>
 			<input type="radio" bind:group={stack.db} value={"postgresql"} />
 			Postgresql
@@ -268,14 +272,23 @@
 	height="400"
 />
 
+<h1>
+	You can find some projects of mine <a href="/projects">over here</a>
+</h1>
+
 <style>
-	:global(:root) {
-		text-align: center;
-		background-color: #131516;
-		color: white;
-	}
 	form {
 		display: flex;
 		justify-content: space-evenly;
+	}
+	.stack-choice {
+		display: flex;
+		flex-direction: column;
+	}
+	canvas {
+		margin: 1em;
+		border-color: #111133;
+		border-width: 1rem;
+		border-style: solid;
 	}
 </style>
