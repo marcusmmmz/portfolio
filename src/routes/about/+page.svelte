@@ -7,16 +7,15 @@
 		Vec2,
 		getDistance2D,
 		getRadialDistance,
-		normalizeVector,
-	} from "$lib/utils";
-	import { onMount } from "svelte";
+		normalizeVector
+	} from '$lib/utils';
+	import { onMount } from 'svelte';
 
 	let canvas: HTMLCanvasElement;
 	let ctx: CanvasRenderingContext2D;
 
 	let visibleIcons: Icon[] = [];
 
-	let icons: Icon[] = [];
 	let draggedIcon: Icon | null = null;
 
 	let can_drag = false;
@@ -30,22 +29,25 @@
 		draw: () => any;
 	}
 
-	function createIcon(pos: Vec2, textureSrc: string, scale = 1) {
+	function createIcon(pos: Vec2, scale = 1, textureSrc = '') {
 		let obj: Icon = {
 			pos,
 			size: Vec2(0, 0),
-			textureSrc,
+			get textureSrc() {
+				return textureSrc;
+			},
+			set textureSrc(src: string) {
+				this.image.src = src;
+				this.image.onload = () => {
+					this.size.x = this.image.width * this.scale;
+					this.size.y = this.image.height * this.scale;
+				};
+			},
 			scale,
-			image: new Image() as HTMLImageElement,
+			image: new Image(),
 			draw() {
-				ctx.fillStyle = "#880088";
-				ctx.drawImage(
-					this.image,
-					this.pos.x,
-					this.pos.y,
-					this.size.x,
-					this.size.y
-				);
+				ctx.fillStyle = '#880088';
+				ctx.drawImage(this.image, this.pos.x, this.pos.y, this.size.x, this.size.y);
 
 				visibleIcons.forEach((otherIcon) => {
 					let distance = getDistance2D(this.pos, otherIcon.pos);
@@ -71,15 +73,8 @@
 					this.pos.x += force.x;
 					this.pos.y += force.y;
 				});
-			},
+			}
 		};
-
-		obj.image.src = textureSrc;
-		obj.image.onload = () => {
-			obj.size.x = obj.image.width * obj.scale;
-			obj.size.y = obj.image.height * obj.scale;
-		};
-		icons.push(obj);
 
 		return obj;
 	}
@@ -87,32 +82,23 @@
 	function connectIcons(a: Rect2, b: Rect2) {
 		drawLine(ctx, [
 			Vec2(a.pos.x + a.size.x / 2, a.pos.y + a.size.x / 2),
-			Vec2(b.pos.x + b.size.y / 2, b.pos.y + b.size.y / 2),
+			Vec2(b.pos.x + b.size.y / 2, b.pos.y + b.size.y / 2)
 		]);
 	}
 
 	function mainloop() {
 		// Clear screen
-		ctx.fillStyle = "#131516";
+		ctx.fillStyle = '#131516';
 		ctx.fillRect(0, 0, 1000, 1000);
 
-		connectIcons(
-			stackChoices.frontend[stack.frontend],
-			stackChoices.server[stack.server]
-		);
+		connectIcons(stackIcons.frontend, stackIcons.server);
 
-		if (stack.db == "firebase") {
-			connectIcons(
-				stackChoices.frontend[stack.frontend],
-				stackChoices.db[stack.db]
-			);
+		if (stack.db == 'firebase') {
+			connectIcons(stackIcons.frontend, stackIcons.db);
 		} else {
-			connectIcons(
-				stackChoices.server[stack.server],
-				stackChoices.orm[stack.orm]
-			);
+			connectIcons(stackIcons.server, stackIcons.orm);
 
-			connectIcons(stackChoices.orm[stack.orm], stackChoices.db[stack.db]);
+			connectIcons(stackIcons.orm, stackIcons.db);
 		}
 
 		for (const obj of visibleIcons) obj.draw();
@@ -121,7 +107,7 @@
 	}
 
 	function onPointerDown(e: MouseEvent | Touch) {
-		for (const icon of icons) {
+		for (const icon of visibleIcons) {
 			if (isPointerInRect(icon, getPointerPos(canvas, e))) {
 				draggedIcon = icon;
 			}
@@ -151,71 +137,53 @@
 	}
 
 	onMount(() => {
-		ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+		ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
 		let frame = mainloop();
 		return () => cancelAnimationFrame(frame);
 	});
 
-	let stackChoices = {
-		language: {
-			javascript: createIcon(Vec2(1000, 1000), "javascript.svg", 0.5),
-			typescript: createIcon(Vec2(1000, 1000), "typescript.svg", 0.15),
-		},
-		frontend: {
-			svelte: createIcon(Vec2(256, 256), "svelte.svg", 0.5),
-			react: createIcon(Vec2(256, 256), "react.svg", 0.5),
-		},
-		server: {
-			nodejs: createIcon(Vec2(128, 128), "nodejs.svg", 0.2),
-		},
-		orm: {
-			prisma: createIcon(Vec2(256, 128), "prisma.svg", 0.5),
-		},
-		db: {
-			postgresql: createIcon(Vec2(256 + 128, 256), "postgresql.svg", 0.125),
-			firebase: createIcon(Vec2(256 + 128, 256), "firebase.svg", 0.5),
-		},
+	let stack = {
+		language: 'typescript',
+		frontend: 'svelte',
+		server: 'nodejs',
+		orm: 'prisma',
+		db: 'postgresql'
 	};
 
-	let stack: {
-		[choice in keyof typeof stackChoices]: keyof (typeof stackChoices)[choice];
-	} = {
-		language: "typescript",
-		frontend: "svelte",
-		server: "nodejs",
-		orm: "prisma",
-		db: "postgresql",
+	let stackIcons = {
+		// language: createIcon(Vec2(1000, 1000), 0.15),
+		frontend: createIcon(Vec2(256, 256), 0.5),
+		server: createIcon(Vec2(128, 128), 0.2),
+		orm: createIcon(Vec2(256, 128), 0.5),
+		db: createIcon(Vec2(256 + 128, 256), 0.125)
 	};
 
-	$: {
-		visibleIcons = [
-			stackChoices.frontend[stack.frontend],
-			stackChoices.server[stack.server],
-			// orm,
-			stackChoices.db[stack.db],
-		];
+	$: needsORM = stack.db != 'firebase';
 
-		if (needsORM && stack.orm)
-			visibleIcons = [...visibleIcons, stackChoices.orm[stack.orm]];
-	}
+	// $: stackIcons.language.textureSrc = stack.language + '.svg';
+	$: stackIcons.frontend.textureSrc = stack.frontend + '.svg';
+	$: stackIcons.server.textureSrc = stack.server + '.svg';
+	$: stackIcons.orm.textureSrc = stack.orm + '.svg';
+	$: stackIcons.db.scale = stack.db == 'firebase' ? 0.5 : 0.125;
+	$: stackIcons.db.textureSrc = stack.db + '.svg';
 
-	$: needsORM = stack.db != "firebase";
+	$: stackIcons.orm.scale = needsORM ? 0.5 : 0;
+
+	$: visibleIcons = Object.values(stackIcons);
 </script>
 
-<h1>
-	Hello there, I'm Marcus, a fullstack web dev and also a tinkerer at heart!
-</h1>
-<h2>Here's my web tech stack:</h2>
+<h1>Hello there, I'm Marcus, a fullstack web dev and also a tinkerer at heart!</h1>
+<h2>Here's my web tech stack (the icons are draggable!):</h2>
 <form>
 	<div class="stack-choice">
 		<strong>Front end</strong>
 		<label>
-			<input type="radio" bind:group={stack.frontend} value={"svelte"} />
+			<input type="radio" bind:group={stack.frontend} value={'svelte'} />
 			Svelte
 		</label>
 		<label>
-			<input type="radio" bind:group={stack.frontend} value={"react"} />
+			<input type="radio" bind:group={stack.frontend} value={'react'} />
 			React
 		</label>
 	</div>
@@ -223,7 +191,7 @@
 	<div class="stack-choice">
 		<strong>Server</strong>
 		<label>
-			<input type="radio" bind:group={stack.server} value={"nodejs"} />
+			<input type="radio" bind:group={stack.server} value={'nodejs'} />
 			NodeJS
 		</label>
 	</div>
@@ -231,12 +199,7 @@
 	<div class="stack-choice">
 		<strong>ORM</strong>
 		<label>
-			<input
-				type="radio"
-				bind:group={stack.orm}
-				value={"prisma"}
-				disabled={!needsORM}
-			/>
+			<input type="radio" bind:group={stack.orm} value={'prisma'} disabled={!needsORM} />
 			Prisma
 		</label>
 	</div>
@@ -244,18 +207,18 @@
 	<div class="stack-choice">
 		<strong>Database</strong>
 		<label>
-			<input type="radio" bind:group={stack.db} value={"postgresql"} />
+			<input type="radio" bind:group={stack.db} value={'postgresql'} />
 			Postgresql
 		</label>
 		<label>
-			<input type="radio" bind:group={stack.db} value={"firebase"} />
+			<input type="radio" bind:group={stack.db} value={'firebase'} />
 			Firebase
 		</label>
 	</div>
 </form>
 
 <canvas
-	style={`cursor: ${can_drag ? "grab" : ""}`}
+	style={`cursor: ${can_drag ? 'grab' : ''}`}
 	on:touchstart={(e) => onPointerDown(e.touches[0])}
 	on:touchmove={(e) => {
 		e.preventDefault();
